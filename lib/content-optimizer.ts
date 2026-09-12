@@ -29,6 +29,8 @@
  */
 
 import { callClaude, parseJsonResponse, fetchImageAsBase64Block, type ClaudeContentBlock } from "./ai-client";
+import { isPredominantlyLanguage } from "./language-guard";
+import { LANGUAGE_DETECTION_INFO } from "./languages";
 import { slugify } from "./slug";
 import { SUPPORTED_LANGUAGES, type LanguageCode } from "./languages";
 import { tryKeywordOptimizedTitle } from "./keyword-title-optimizer";
@@ -48,8 +50,12 @@ export type OptimizedContent = {
 function buildSystemPrompt(languageName: string): string {
   return `You are an expert Shopify product copywriter and SEO specialist for a fashion dropshipping brand. You are shown a competitor's product photos, title, and description, and you produce fully original, optimized content for the same physical product to be listed in a different store.
 
-## LANGUAGE
-Write everything in ${languageName} (spelling conventions specifically — e.g. "Colour" vs "Color", "Personalise" vs "Personalize" — must match ${languageName}, not just generic English). All fields (titleSuffix, descriptionHtml, keyFeature1, keyFeature2, metaDescription) must consistently use ${languageName} spelling throughout.
+## LANGUAGE — CRITICAL, READ CAREFULLY
+Write EVERY field entirely in ${languageName}: titleSuffix, descriptionHtml, keyFeature1, keyFeature2, and metaDescription. This is a hard requirement.
+- Use correct, natural, native-level ${languageName} throughout — correct grammar, spelling, capitalization conventions, and natural fashion-retail phrasing for that language.
+- ABSOLUTELY DO NOT drift into any other language at any point. A very common failure is starting correctly in ${languageName} and then switching mid-description into another language (e.g. English, French, or Dutch) — this is completely unacceptable. Every single sentence, in every section (opening paragraph, bullet points, Care Instructions, FAQ), must be in ${languageName}.
+- Before you finish, re-read your entire output and verify that 100% of it — every sentence of the description, the title, and the meta description — is written in ${languageName}. If any part is not, rewrite it in ${languageName} before responding.
+- The ONLY exception is the "coreProductTypeEnglish" field, which is always in English by design (it's internal, never shown to customers).
 
 ## TERMINOLOGY (applies everywhere — title, description, alt text, everything)
 - Never use the word "Orthopedic" anywhere, even if the product has an orthopedic-style sole or support feature — describe the actual visible benefit instead (e.g. "Cushioned", "Supportive") without using that specific word.
@@ -216,13 +222,46 @@ export async function generateOptimizedContent(
     },
   ];
 
-  const responseText = await callClaude({
-    system: buildSystemPrompt(languageName),
-    messages: [{ role: "user", content: userContent }],
-    maxTokens: 4000,
-  });
+  // Generate, then verify the output is actually in the target language.
+  // The earlier reason non-English languages were removed was mid-content
+  // language drift; this safety net catches it and regenerates once. The
+  // check runs on the combined title + description + meta, and only ever
+  // triggers a retry for non-English targets (English never drifts, and
+  // isPredominantlyLanguage returns true for "en" so no retry happens).
+  const targetIso = LANGUAGE_DETECTION_INFO[language]?.iso ?? "en";
 
-  const parsed = parseJsonResponse<ClaudeOutput>(responseText);
+  async function generateOnce(): Promise<ClaudeOutput> {
+    const responseText = await callClaude({
+      system: buildSystemPrompt(languageName),
+      messages: [{ role: "user", content: userContent }],
+      maxTokens: 4000,
+    });
+    return parseJsonResponse<ClaudeOutput>(responseText);
+  }
+
+  let parsed = await generateOnce();
+
+  // Combine the customer-facing text fields and check the language.
+  const combinedForCheck = `${parsed.titleSuffix} ${parsed.descriptionHtml} ${parsed.metaDescription}`;
+  if (!isPredominantlyLanguage(combinedForCheck, targetIso)) {
+    console.warn(
+      `[content-optimizer] Output did not appear to be predominantly ${languageName} — regenerating once (language-drift safety net).`
+    );
+    const retry = await generateOnce();
+    const retryCombined = `${retry.titleSuffix} ${retry.descriptionHtml} ${retry.metaDescription}`;
+    // Use the retry if it passes; if it also fails, keep the retry anyway
+    // (no worse than before) but log clearly so it can be caught on the
+    // Draft review before going live.
+    if (isPredominantlyLanguage(retryCombined, targetIso)) {
+      console.log(`[content-optimizer] Regeneration produced correct ${languageName}.`);
+      parsed = retry;
+    } else {
+      console.error(
+        `[content-optimizer] WARNING: regeneration STILL did not appear predominantly ${languageName}. Using it, but review this product manually before publishing.`
+      );
+      parsed = retry;
+    }
+  }
 
   parsed.titleSuffix = enforceTerminology(parsed.titleSuffix);
 
