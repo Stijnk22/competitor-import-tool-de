@@ -1,0 +1,37 @@
+// Prisma schema — Fase 8: multi-store beheer, Fase 6: keyword-bibliotheek
+//
+// Dit schema is actief gekoppeld aan de applicatie (via lib/db.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Store {
+  id            String   @id @default(cuid())
+  name          String
+  shopifyDomain String   @unique @map("shopify_domain")
+  // Versleuteld met AES-256-GCM, zie lib/encryption.ts — nooit als platte
+  // tekst opgeslagen.
+  accessToken   String   @map("access_token")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("stores")
+}
+
+model KeywordLibraryEntry {
+  id            String   @id @default(cuid())
+  market        String // en-US, en-GB, nl-NL, de-DE, da-DK
+  category      String // heels, dresses, blazers, ... (vrij invoerbaar bij upload)
+  attributeSlot String   @map("attribute_slot") // core_product, material, closure_style, ...
+  keyword       String
+  searchVolume  Int      @map("search_volume")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([market, category, attributeSlot])
+  @@map("keyword_library")
+}
