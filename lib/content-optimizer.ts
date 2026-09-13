@@ -234,12 +234,30 @@ export async function generateOptimizedContent(
     const responseText = await callClaude({
       system: buildSystemPrompt(languageName),
       messages: [{ role: "user", content: userContent }],
-      maxTokens: 4000,
+      maxTokens: 6000,
     });
     return parseJsonResponse<ClaudeOutput>(responseText);
   }
 
-  let parsed = await generateOnce();
+  // Wraps generateOnce with one retry specifically for the case where the
+  // model's JSON came back unparseable — almost always because the
+  // response was cut off mid-text when it ran long (more likely for
+  // German, whose compound words make descriptions longer). A single
+  // clean retry resolves this in practice; if it still fails, the original
+  // error is thrown so the item is reported as failed rather than
+  // silently producing a broken product.
+  async function generateOnceWithJsonRetry(): Promise<ClaudeOutput> {
+    try {
+      return await generateOnce();
+    } catch (err) {
+      console.warn(
+        `[content-optimizer] Could not parse the model response as JSON (likely truncated) — retrying once.`
+      );
+      return await generateOnce();
+    }
+  }
+
+  let parsed = await generateOnceWithJsonRetry();
 
   // Combine the customer-facing text fields and check the language.
   const combinedForCheck = `${parsed.titleSuffix} ${parsed.descriptionHtml} ${parsed.metaDescription}`;
@@ -247,7 +265,7 @@ export async function generateOptimizedContent(
     console.warn(
       `[content-optimizer] Output did not appear to be predominantly ${languageName} — regenerating once (language-drift safety net).`
     );
-    const retry = await generateOnce();
+    const retry = await generateOnceWithJsonRetry();
     const retryCombined = `${retry.titleSuffix} ${retry.descriptionHtml} ${retry.metaDescription}`;
     // Use the retry if it passes; if it also fails, keep the retry anyway
     // (no worse than before) but log clearly so it can be caught on the
@@ -413,7 +431,7 @@ export async function generateRephrasedContent(
   const responseText = await callClaude({
     system: buildRephraseSystemPrompt(languageName),
     messages: [{ role: "user", content: userContent }],
-    maxTokens: 4000,
+    maxTokens: 6000,
   });
 
   const parsed = parseJsonResponse<ClaudeOutput>(responseText);
