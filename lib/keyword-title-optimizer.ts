@@ -47,17 +47,41 @@ function normalizeCategory(value: string): string {
 // (coats+jackets together; trousers+pants+chinos together).
 const CATEGORY_SYNONYM_GROUPS: string[][] = [
   // Knitwear / pullovers (cardigans deliberately NOT included — different garment)
-  ["sweater", "sweaters", "jumper", "jumpers", "pullover", "pullovers", "knitwear", "jersey", "jerseys"],
-  // Outerwear — coats + jackets + generic overcoats (owner chose to merge)
-  ["coat", "coats", "jacket", "jackets", "overcoat", "overcoats", "topcoat", "topcoats"],
+  ["sweater", "sweaters", "jumper", "jumpers", "pullover", "pullovers", "knitwear", "jersey", "jerseys", "pullunder", "pullunders"],
+  // Outerwear — coats + jackets + all coat/jacket subtypes
+  ["coat", "coats", "jacket", "jackets", "overcoat", "overcoats", "topcoat", "topcoats",
+   "peacoat", "peacoats", "trenchcoat", "trenchcoats", "raincoat", "raincoats",
+   "anorak", "anoraks", "windbreaker", "windbreakers", "parka", "parkas", "shacket", "shackets"],
   // Trousers (owner chose to merge trousers + pants + chinos)
   ["trouser", "trousers", "pant", "pants", "chino", "chinos"],
-  // Pyjamas / sleepwear (spelling + synonym splits)
-  ["pyjama", "pyjamas", "pajama", "pajamas", "pyjama sets", "sleepwear", "nightwear"],
+  // Shorts + bermudas (owner's choice)
+  ["short", "shorts", "bermuda", "bermudas"],
+  // Vests — their own group (owner's choice), separate from knitwear
+  ["vest", "vests", "gilet", "gilets", "waistcoat", "waistcoats", "bolero", "boleros", "sweater vest", "sweater vests"],
+  // Boots — all boot types share one pool
+  ["boot", "boots", "bootie", "booties", "ankle boots", "ankle boot", "knee high boots",
+   "knee-high boots", "chelsea boots", "combat boots", "winter boots", "stiefel", "stiefeletten", "winterstiefel"],
+  // General everyday shoes (owner chose to merge the flat/heeled types)
+  ["shoe", "shoes", "pump", "pumps", "heel", "heels", "flat", "flats", "loafer", "loafers",
+   "mule", "mules", "sandal", "sandals", "wedge", "wedges", "ballerina", "ballerinas",
+   "clog", "clogs", "espadrille", "espadrilles", "moccasin", "moccasins", "slipper", "slippers"],
+  // Smart/formal shoes (own group — distinct search terms)
+  ["oxford", "oxfords", "derby", "derbies", "derby shoes", "brogue", "brogues",
+   "budapester", "boat shoes", "dress shoes"],
+  // Sneakers / trainers
+  ["sneaker", "sneakers", "trainer", "trainers"],
+  // Pyjamas / sleepwear / robes / loungewear
+  ["pyjama", "pyjamas", "pajama", "pajamas", "pyjama sets", "sleepwear", "nightwear",
+   "nightgown", "nightgowns", "nightdress", "nightdresses", "robe", "robes", "bathrobe", "bathrobes",
+   "loungewear", "lounge set", "lounge sets"],
   // T-shirts (pure spelling split)
   ["t-shirt", "t-shirts", "tshirt", "tshirts"],
   // Polo shirts (three-way split of the same thing)
   ["polo", "polos", "polo shirt", "polo shirts", "poloshirt", "poloshirts"],
+  // Hoodies + sweatshirts (casual tops)
+  ["hoodie", "hoodies", "sweatshirt", "sweatshirts"],
+  // Traditional German wear
+  ["dirndl", "dirndls", "tracht", "trachten", "lederhosen", "loferl"],
 ];
 
 /**
