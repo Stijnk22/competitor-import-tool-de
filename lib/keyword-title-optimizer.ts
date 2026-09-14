@@ -114,8 +114,24 @@ export async function tryKeywordOptimizedTitle(
       `[keyword-title-optimizer] ${usableCandidates.length} usable candidate keywords found for "${matchedCategory}" (${market})`
     );
     if (usableCandidates.length > 0) {
-      candidatesText = usableCandidates
+      // Only send the top 40 keywords by search volume to the AI. Sending
+      // the full list (which can be 200-300 for big categories like
+      // jackets/coats) made the prompt so large that the refinement call
+      // sometimes returned no usable response at all ("Claude returned no
+      // text response"), so the title was left un-refined. The highest-
+      // volume keywords are what matter for the title anyway; the long
+      // tail adds little and was causing the failures.
+      const TOP_N = 40;
+      const topCandidates = usableCandidates
         .sort((a, b) => b.searchVolume - a.searchVolume)
+        .slice(0, TOP_N);
+
+      console.log(
+        `[keyword-title-optimizer] Using top ${topCandidates.length} of ${usableCandidates.length} keywords (by volume) for "${matchedCategory}":`,
+        topCandidates.map((c) => `${c.keyword} (${c.searchVolume})`).join(", ")
+      );
+
+      candidatesText = topCandidates
         .map((c) => `- "${c.keyword}" (${c.attributeSlot}, volume: ${c.searchVolume})`)
         .join("\n");
     }
@@ -141,7 +157,7 @@ export async function tryKeywordOptimizedTitle(
           ],
         },
       ],
-      maxTokens: 500,
+      maxTokens: 1000,
     });
 
     const parsed = parseJsonResponse<{ refinedTitleSuffix: string }>(responseText);
