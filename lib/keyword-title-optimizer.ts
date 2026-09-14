@@ -37,6 +37,47 @@ function normalizeCategory(value: string): string {
     .replace(/s$/, "");
 }
 
+// Category synonym groups: product types that are effectively the same
+// garment but get split across differently-named library categories
+// (different English/US spellings, or synonyms the AI picks
+// interchangeably). Each group is treated as ONE shared keyword pool, so a
+// product tagged with any name in the group sees the combined keywords of
+// the whole group instead of just one thin category. Groups below reflect
+// the actual German library categories and the store owner's choices
+// (coats+jackets together; trousers+pants+chinos together).
+const CATEGORY_SYNONYM_GROUPS: string[][] = [
+  // Knitwear / pullovers (cardigans deliberately NOT included — different garment)
+  ["sweater", "sweaters", "jumper", "jumpers", "pullover", "pullovers", "knitwear", "jersey", "jerseys"],
+  // Outerwear — coats + jackets + generic overcoats (owner chose to merge)
+  ["coat", "coats", "jacket", "jackets", "overcoat", "overcoats", "topcoat", "topcoats"],
+  // Trousers (owner chose to merge trousers + pants + chinos)
+  ["trouser", "trousers", "pant", "pants", "chino", "chinos"],
+  // Pyjamas / sleepwear (spelling + synonym splits)
+  ["pyjama", "pyjamas", "pajama", "pajamas", "pyjama sets", "sleepwear", "nightwear"],
+  // T-shirts (pure spelling split)
+  ["t-shirt", "t-shirts", "tshirt", "tshirts"],
+  // Polo shirts (three-way split of the same thing)
+  ["polo", "polos", "polo shirt", "polo shirts", "poloshirt", "poloshirts"],
+];
+
+/**
+ * Returns all library category names that should share a keyword pool with
+ * the given matched category (including itself). If the matched category is
+ * part of a synonym group, every category name in that group that actually
+ * exists in the library is returned; otherwise just the matched category.
+ */
+function expandToSynonymCategories(matchedCategory: string, availableCategories: string[]): string[] {
+  const normMatched = normalizeCategory(matchedCategory);
+  const group = CATEGORY_SYNONYM_GROUPS.find((g) => g.some((name) => normalizeCategory(name) === normMatched));
+  if (!group) return [matchedCategory];
+
+  const groupNormalized = new Set(group.map((n) => normalizeCategory(n)));
+  const matches = availableCategories.filter((cat) => groupNormalized.has(normalizeCategory(cat)));
+  // Always include the matched category itself, even if not in the list.
+  if (!matches.some((c) => normalizeCategory(c) === normMatched)) matches.push(matchedCategory);
+  return matches;
+}
+
 async function findMatchingCategory(market: string, coreProductTypeEnglish: string): Promise<string | null> {
   const availableCategories = await listCategoriesForMarket(market);
   if (availableCategories.length === 0) return null;
@@ -105,7 +146,32 @@ export async function tryKeywordOptimizedTitle(
 
   let candidatesText = "No library data available for this category — return the title unchanged.";
   if (matchedCategory) {
-    const candidates = await getKeywordCandidates(market, matchedCategory);
+    // Pull keywords from every category in this one's synonym group (e.g.
+    // "sweaters" + "jumpers"), so a pullover tagged either way sees the
+    // full shared pool instead of just one thin category.
+    const availableCategories = await listCategoriesForMarket(market);
+    const synonymCategories = expandToSynonymCategories(matchedCategory, availableCategories);
+    if (synonymCategories.length > 1) {
+      console.log(
+        `[keyword-title-optimizer] Category "${matchedCategory}" grouped with: ${synonymCategories.join(", ")}`
+      );
+    }
+
+    const candidateArrays = await Promise.all(
+      synonymCategories.map((cat) => getKeywordCandidates(market, cat))
+    );
+    // Flatten + de-duplicate by keyword (keep the highest volume seen).
+    const byKeyword = new Map<string, (typeof candidateArrays)[0][0]>();
+    for (const arr of candidateArrays) {
+      for (const c of arr) {
+        const existing = byKeyword.get(c.keyword.toLowerCase());
+        if (!existing || c.searchVolume > existing.searchVolume) {
+          byKeyword.set(c.keyword.toLowerCase(), c);
+        }
+      }
+    }
+    const candidates = [...byKeyword.values()];
+
     const BLOCKED_TERMS = /orthopedic|leather/i;
     const usableCandidates = candidates.filter(
       (c) => c.attributeSlot !== "material" && !BLOCKED_TERMS.test(c.keyword)
