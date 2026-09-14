@@ -211,7 +211,7 @@ export async function tryKeywordOptimizedTitle(
       // text response"), so the title was left un-refined. The highest-
       // volume keywords are what matter for the title anyway; the long
       // tail adds little and was causing the failures.
-      const TOP_N = 40;
+      const TOP_N = 30;
       const topCandidates = usableCandidates
         .sort((a, b) => b.searchVolume - a.searchVolume)
         .slice(0, TOP_N);
@@ -232,7 +232,13 @@ export async function tryKeywordOptimizedTitle(
 
   if (imageBlocks.length === 0) return null;
 
-  try {
+  // Run the refinement, with one automatic retry. The refinement call
+  // occasionally fails with "no text response" or a truncated/unparseable
+  // JSON — usually a transient issue, more common on the big merged
+  // categories (jackets/coats have hundreds of keywords). A single clean
+  // retry recovers most of these instead of silently skipping the keyword
+  // step. If both attempts fail, we keep the original (un-refined) title.
+  async function attemptRefinement(): Promise<BuiltTitleResult> {
     const responseText = await callClaude({
       system: SYSTEM_PROMPT,
       messages: [
@@ -247,7 +253,7 @@ export async function tryKeywordOptimizedTitle(
           ],
         },
       ],
-      maxTokens: 1000,
+      maxTokens: 1500,
     });
 
     const parsed = parseJsonResponse<{ refinedTitleSuffix: string }>(responseText);
@@ -257,10 +263,18 @@ export async function tryKeywordOptimizedTitle(
     if (!parsed.refinedTitleSuffix || parsed.refinedTitleSuffix.trim().length === 0) {
       return null;
     }
-
     return { titleSuffix: parsed.refinedTitleSuffix.trim() };
-  } catch (err) {
-    console.error(`[keyword-title-optimizer] Error, keeping original title:`, err);
-    return null;
+  }
+
+  try {
+    return await attemptRefinement();
+  } catch (firstErr) {
+    console.warn(`[keyword-title-optimizer] Refinement failed (${firstErr instanceof Error ? firstErr.message : firstErr}) — retrying once.`);
+    try {
+      return await attemptRefinement();
+    } catch (secondErr) {
+      console.error(`[keyword-title-optimizer] Retry also failed, keeping original title:`, secondErr);
+      return null;
+    }
   }
 }
