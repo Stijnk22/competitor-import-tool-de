@@ -164,6 +164,7 @@ Example: "Shop the Holt Men's Structured Textured Slim-Fit Blazer Jacket with No
 ## OUTPUT
 Respond with ONLY a valid JSON object, no markdown code fences, no preamble, no explanation. Schema:
 {
+  "visualAnalysis": string,
   "firstName": string,
   "titleSuffix": string,
   "coreProductTypeEnglish": string,
@@ -172,10 +173,19 @@ Respond with ONLY a valid JSON object, no markdown code fences, no preamble, no 
   "keyFeature1": string,
   "keyFeature2": string,
   "metaDescription": string
-}`;
+}
+
+IMPORTANT — fill in "visualAnalysis" FIRST, before anything else, and base the title and all other fields on it:
+In "visualAnalysis" (2-4 sentences, in English, internal only — never shown to customers), carefully describe what you ACTUALLY see in the photos, being precise about the details that are easy to get wrong:
+- The exact product type. Look closely: e.g. is a shoe closed at the heel (ballerina/flat) or open at the heel with a strap (slingback)? Is a jacket a genuine cargo jacket, or a padded winter/quilted jacket/parka? Name what it really is.
+- The collar/neckline type precisely: a stand-up collar (Stehkragen, Mao-style) vs a folded-over shirt collar (Hemdkragen/Umlegekragen) vs a V-neck etc. — don't confuse these.
+- The pattern precisely: is it a checked/tartan pattern (Karo), or diamond-shaped quilting/stitching (Raute/Rautensteppung)? These are completely different.
+- Closure, sleeve length, silhouette, heel type, toe shape as relevant.
+Only after writing this analysis, choose the product type and attributes for the title strictly according to what you described — never contradict your own visual analysis.`;
 }
 
 type ClaudeOutput = {
+  visualAnalysis?: string;
   firstName: string;
   titleSuffix: string;
   coreProductTypeEnglish: string;
@@ -305,7 +315,11 @@ export async function generateOptimizedContent(
     .trim();
 
   const sortedImages = [...product.images].sort((a, b) => a.position - b.position);
-  const imageUrls = sortedImages.slice(0, 3).map((img) => img.src);
+  // Analyze up to 6 images (was 3): key identifying details — an open
+  // heel, a specific collar type, quilting pattern — are often only
+  // clearly visible on later photos, so more images means the AI is far
+  // less likely to misread the product type or a feature.
+  const imageUrls = sortedImages.slice(0, 6).map((img) => img.src);
   const imageBlocksRaw = await Promise.all(imageUrls.map(fetchImageAsBase64Block));
   const imageBlocks = imageBlocksRaw.filter((b): b is ClaudeContentBlock => b !== null);
 
@@ -342,7 +356,7 @@ export async function generateOptimizedContent(
     const responseText = await callClaude({
       system: buildSystemPrompt(languageName),
       messages: [{ role: "user", content: userContent }],
-      maxTokens: 6000,
+      maxTokens: 7000,
     });
     return parseJsonResponse<ClaudeOutput>(responseText);
   }
