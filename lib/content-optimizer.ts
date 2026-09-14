@@ -47,21 +47,56 @@ export type OptimizedContent = {
   gender: string;
 };
 
+/**
+ * German-market title rules. Based on real high-performing German
+ * competitor titles, which follow a noticeably different convention than
+ * the English ones: richer (often 4-6 attributes), "mit" is natural and
+ * allowed, the core product type may appear mid-title (not forced to the
+ * end), warmth/lining attributes are prominent for winter items, and
+ * "orthopädisch" is an allowed, searched term for comfort footwear.
+ *
+ * Example target titles (this is the style to match):
+ *   HERREN WINTERJACKE MIT FLEECE-FUTTER UND KAPUZE
+ *   DAMEN WINTERSTIEFEL WARM GEFÜTTERT WASSERDICHT RUTSCHFESTE PROFILSOHLE
+ *   DAMEN BOHO MAXIKLEID MIT V-AUSSCHNITT UND GROSSEM BLUMENMUSTER
+ *   HERREN WINTERJACKE WASSER- UND WINDDICHT FLEECEFUTTER KAPUZE
+ */
+function buildGermanTitleRules(): string {
+  return `## TITEL-FORMAT (Deutsch — WICHTIG)
+Erzeuge zwei Teile:
+- "firstName": ein eleganter, passender deutscher Vorname für diese Produktlinie, in Title Case (z. B. Hannah, Lena, Marie, Andreas, Matthias, Maximilian). Wähle einen Namen, dessen Stimmung zum Produkt passt. Für Herrenmode einen passenden männlichen Vornamen.
+- "titleSuffix": der SEO-beschreibende Teil des Titels, in Title Case, aufgebaut als: [Geschlecht] [Produkttyp] [Merkmal] [Merkmal] [Merkmal]... — im natürlichen Stil deutscher Modetitel.
+
+Beispiele für den GEWÜNSCHTEN Stil (genau diesen Stil nachbilden):
+- "Herren Winterjacke mit Fleece-Futter und Kapuze"
+- "Damen Wintersteifel Warm Gefüttert Wasserdicht Rutschfeste Profilsohle"
+- "Damen Boho Maxikleid mit V-Ausschnitt und Großem Blumenmuster"
+- "Herren Winterjacke Wasser- und Winddicht Fleecefutter Kapuze"
+- "Damen Steppjacke mit Kapuze Blumenstickerei Winterjacke Tailliert"
+- "Damen Kniehohe Stiefel mit Schnalle Reißverschluss Profilsohle"
+
+REGELN:
+- Beginne mit dem Geschlecht ("Damen" oder "Herren").
+- Nenne den PRODUKTTYP früh und KORREKT — bei einer gefütterten Winter-/Outdoor-Jacke z. B. "Winterjacke", "Parka" oder "Steppjacke", NICHT "Cargojacke", wenn es keine echte Cargojacke ist. Wähle den Produkttyp genau nach dem, was das Produkt wirklich ist (Fotos + Text).
+- Nenne so viele echte, sichtbare/beschriebene Merkmale wie zutreffend — typischerweise 4 bis 6 Merkmale. Deutsche Modetitel sind merkmalreich; nenne ruhig mehrere Merkmale hintereinander (z. B. "Warm Gefüttert Wasserdicht Rutschfeste Profilsohle").
+- "mit" ist erlaubt und natürlich (z. B. "mit Kapuze", "mit Fleece-Futter", "mit Reißverschluss"). Du darfst Merkmale mit "mit" und "und" verbinden ODER einfach hintereinander reihen — beides ist üblich.
+- Der Produkttyp muss NICHT das letzte Wort sein (anders als im Englischen) — im Deutschen steht er oft vorne oder in der Mitte, gefolgt von Merkmalen. Das ist erwünscht.
+- WÄRME/FUTTER bei Winterartikeln IMMER nennen, wenn zutreffend: "Gefüttert", "Warm Gefüttert", "Fleece-Futter", "Kunstfell", "Teddyfutter" — das ist ein zentrales, stark gesuchtes Merkmal bei Winterjacken, -mänteln und -stiefeln. Übersieh es nicht.
+- "orthopädisch" ist bei Komfort-/Bequemschuhen ein erlaubter, gesuchter Begriff und darf im Titel stehen, wenn zutreffend.
+- Boho-Prüfung: Prüfe, ob das Produkt echt boho/bohemian ist (fließende Silhouette + ethnischer Print wie Ikat/Paisley, oder Häkel-/Quasten-/Fransendetails). Wenn ja, nimm "Boho" als eines der Merkmale auf.
+- Materialangaben als Stoffbezeichnung sind im Titel erlaubt, wenn sie beschreibend/gesucht sind (z. B. "Kunstleder", "Fleece-Futter", "Strick") — anders als in den englischen Regeln. Nenne Material aber nur, wenn es echt zutrifft.
+- Wiederhole kein wichtiges Wort doppelt im titleSuffix.
+- Kopiere niemals den exakten Titel des Konkurrenten — bilde eine eigene Version aus den echten Merkmalen.
+- "coreProductTypeEnglish": das einzelne Kern-Produktnomen, IMMER AUF ENGLISCH (nur intern, z. B. "Jacket", "Boots", "Dress", "Coat") — bestimme es selbst aus dem, was das Produkt wirklich ist.`;
+}
+
 function buildSystemPrompt(languageName: string): string {
-  return `You are an expert Shopify product copywriter and SEO specialist for a fashion dropshipping brand. You are shown a competitor's product photos, title, and description, and you produce fully original, optimized content for the same physical product to be listed in a different store.
-
-## LANGUAGE — CRITICAL, READ CAREFULLY
-Write EVERY field entirely in ${languageName}: titleSuffix, descriptionHtml, keyFeature1, keyFeature2, and metaDescription. This is a hard requirement.
-- Use correct, natural, native-level ${languageName} throughout — correct grammar, spelling, capitalization conventions, and natural fashion-retail phrasing for that language.
-- ABSOLUTELY DO NOT drift into any other language at any point. A very common failure is starting correctly in ${languageName} and then switching mid-description into another language (e.g. English, French, or Dutch) — this is completely unacceptable. Every single sentence, in every section (opening paragraph, bullet points, Care Instructions, FAQ), must be in ${languageName}.
-- Before you finish, re-read your entire output and verify that 100% of it — every sentence of the description, the title, and the meta description — is written in ${languageName}. If any part is not, rewrite it in ${languageName} before responding.
-- The ONLY exception is the "coreProductTypeEnglish" field, which is always in English by design (it's internal, never shown to customers).
-
-## TERMINOLOGY (applies everywhere — title, description, alt text, everything)
-- Never use the word "Orthopedic" anywhere, even if the product has an orthopedic-style sole or support feature — describe the actual visible benefit instead (e.g. "Cushioned", "Supportive") without using that specific word.
-- Whenever referring to a leather-look material anywhere (title or description), always call it "Vegan Leather" — never "Leather", "Faux Leather", "Faux-Leather", "PU Leather", "Synthetic Leather", or "Leatherette". Use "Vegan Leather" consistently, even in a compound like "Vegan Leather Trim".
-
-## TITLE FORMAT
+  // German market uses its own title convention (see buildGermanTitleRules).
+  // All other languages keep the original English-derived title format.
+  const titleSection =
+    languageName === "German"
+      ? buildGermanTitleRules()
+      : `## TITLE FORMAT
 Generate two parts, both in Title Case (capitalize the first letter of every significant word, including each part of hyphenated words — e.g. "Relaxed-Fit", "Round-Toe", "A-Line" — never write in ALL CAPS/full uppercase):
 - "firstName": an elegant, fitting first name for this product line, in Title Case (e.g. Sophie, Aria, Phoebe, Rosie, Sienna). Choose a name whose feel matches the product's style. For menswear, choose a fitting name in the same convention.
 - "titleSuffix": the SEO-descriptive part of the title, in Title Case and in ${languageName}, formatted as: [Gender]'s [Attribute] [Attribute] [Attribute]... [Core Product Type] (using the natural word order and grammar of ${languageName} — don't force English word order).
@@ -74,7 +109,21 @@ Generate two parts, both in Title Case (capitalize the first letter of every sig
   - Never repeat the same significant word twice within titleSuffix, even as part of two different compound attributes (e.g. never combine "Criss-Cross Strap" with "Ankle-Strap" in the same title — "Strap" would then appear twice; pick only one of them, or rephrase one to avoid the repeated word). Before finalizing, check titleSuffix word-by-word for any accidental repetition.
   - Total title length (firstName + titleSuffix combined) should stay roughly under 80 characters where possible, but a fully accurate, attribute-rich title takes priority over hitting an exact character count.
 - Never copy the competitor's exact title wording verbatim — always construct your own version based on the product's real attributes.
-- "coreProductTypeEnglish": the single core product noun, ALWAYS IN ENGLISH regardless of the target language above, e.g. "Dress", "Heels", "Blazer", "Jumper", "Sandals". This is used internally for Shopify's product category system and is never shown to customers — do not use the (possibly messy or inaccurate) product type/category text supplied by the source data; determine this yourself from what the product actually is, based on the images and description.
+- "coreProductTypeEnglish": the single core product noun, ALWAYS IN ENGLISH regardless of the target language above, e.g. "Dress", "Heels", "Blazer", "Jumper", "Sandals". This is used internally for Shopify's product category system and is never shown to customers — do not use the (possibly messy or inaccurate) product type/category text supplied by the source data; determine this yourself from what the product actually is, based on the images and description.`;
+
+  return `You are an expert Shopify product copywriter and SEO specialist for a fashion dropshipping brand. You are shown a competitor's product photos, title, and description, and you produce fully original, optimized content for the same physical product to be listed in a different store.
+
+## LANGUAGE — CRITICAL, READ CAREFULLY
+Write EVERY field entirely in ${languageName}: titleSuffix, descriptionHtml, keyFeature1, keyFeature2, and metaDescription. This is a hard requirement.
+- Use correct, natural, native-level ${languageName} throughout — correct grammar, spelling, capitalization conventions, and natural fashion-retail phrasing for that language.
+- ABSOLUTELY DO NOT drift into any other language at any point. A very common failure is starting correctly in ${languageName} and then switching mid-description into another language (e.g. English, French, or Dutch) — this is completely unacceptable. Every single sentence, in every section (opening paragraph, bullet points, Care Instructions, FAQ), must be in ${languageName}.
+- Before you finish, re-read your entire output and verify that 100% of it — every sentence of the description, the title, and the meta description — is written in ${languageName}. If any part is not, rewrite it in ${languageName} before responding.
+- The ONLY exception is the "coreProductTypeEnglish" field, which is always in English by design (it's internal, never shown to customers).
+
+## TERMINOLOGY (applies everywhere — title, description, alt text, everything)
+- Whenever referring to a leather-look material anywhere (title or description), always call it "Vegan Leather" — never "Leather", "Faux Leather", "Faux-Leather", "PU Leather", "Synthetic Leather", or "Leatherette". Use "Vegan Leather" consistently, even in a compound like "Vegan Leather Trim". (In German: "Kunstleder".)
+
+${titleSection}
 
 ## DESCRIPTION FORMAT (descriptionHtml)
 Follow this exact structure, output as raw HTML (no markdown), in ${languageName}:
@@ -167,20 +216,37 @@ function truncateMetaDescription(text: string, maxLength = 230): string {
   return `${truncated.slice(0, lastSpace)}...`;
 }
 
-function enforceTerminology(titleSuffix: string): string {
+function enforceTerminology(titleSuffix: string, languageName: string = "English"): string {
   let result = titleSuffix;
 
-  result = result.replace(/\b(Faux[-\s]|PU\s|Synthetic\s)?Leather(ette)?\b/gi, "Vegan Leather");
-  result = result.replace(/\bVegan\s+Vegan\s+Leather\b/gi, "Vegan Leather");
-  result = result.replace(/\bOrthopedic\b\s*/gi, "").replace(/\s{2,}/g, " ").trim();
-  result = result.replace(/\s+with\s+[A-Za-z][A-Za-z\s-]*$/i, "").trim();
+  const isGerman = languageName === "German";
 
-  if (/\bBoho\b/i.test(result)) {
-    result = result
-      .replace(/\b(Ikat|Paisley|Tribal|Batik)(\s+Print)?\s+/i, "")
-      .replace(/\b(Crochet|Embroidered|Tassel-?Tie|Tasseled|Fringe|Fringed)\s+/i, "")
-      .replace(/\s{2,}/g, " ")
-      .trim();
+  // Leather -> Vegan Leather. For German this is handled in-prompt as
+  // "Kunstleder" (a searched, allowed term there), so we only apply the
+  // English "Vegan Leather" rewrite for non-German markets.
+  if (!isGerman) {
+    result = result.replace(/\b(Faux[-\s]|PU\s|Synthetic\s)?Leather(ette)?\b/gi, "Vegan Leather");
+    result = result.replace(/\bVegan\s+Vegan\s+Leather\b/gi, "Vegan Leather");
+  }
+
+  // The following are English-market rules that do NOT apply to German:
+  //  - "Orthopedic" is banned in English, but "orthopädisch" is an
+  //    allowed, searched term in German titles.
+  //  - the trailing "with X" strip targets English "with"; German titles
+  //    deliberately allow "mit ...".
+  //  - the boho-signal-word strip targets English words (Ikat, Tassel-Tie,
+  //    etc.); German boho titles keep their own phrasing.
+  if (!isGerman) {
+    result = result.replace(/\bOrthopedic\b\s*/gi, "").replace(/\s{2,}/g, " ").trim();
+    result = result.replace(/\s+with\s+[A-Za-z][A-Za-z\s-]*$/i, "").trim();
+
+    if (/\bBoho\b/i.test(result)) {
+      result = result
+        .replace(/\b(Ikat|Paisley|Tribal|Batik)(\s+Print)?\s+/i, "")
+        .replace(/\b(Crochet|Embroidered|Tassel-?Tie|Tasseled|Fringe|Fringed)\s+/i, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
   }
 
   return result;
@@ -281,7 +347,7 @@ export async function generateOptimizedContent(
     }
   }
 
-  parsed.titleSuffix = enforceTerminology(parsed.titleSuffix);
+  parsed.titleSuffix = enforceTerminology(parsed.titleSuffix, languageName);
 
   const duplicateWord = findRepeatedSignificantWord(parsed.titleSuffix);
   if (duplicateWord) {
@@ -308,7 +374,7 @@ export async function generateOptimizedContent(
     // Never let the whole import fail over this part.
   }
 
-  titleSuffix = enforceTerminology(titleSuffix);
+  titleSuffix = enforceTerminology(titleSuffix, languageName);
 
   const title = `${parsed.firstName} | ${titleSuffix}`;
   const slug = slugify(titleSuffix);
@@ -436,7 +502,7 @@ export async function generateRephrasedContent(
 
   const parsed = parseJsonResponse<ClaudeOutput>(responseText);
 
-  parsed.titleSuffix = enforceTerminology(parsed.titleSuffix);
+  parsed.titleSuffix = enforceTerminology(parsed.titleSuffix, languageName);
 
   const duplicateWord = findRepeatedSignificantWord(parsed.titleSuffix);
   if (duplicateWord) {
