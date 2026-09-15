@@ -175,13 +175,28 @@ Respond with ONLY a valid JSON object, no markdown code fences, no preamble, no 
   "metaDescription": string
 }
 
-IMPORTANT — fill in "visualAnalysis" FIRST, before anything else, and base the title and all other fields on it:
-In "visualAnalysis" (2-4 sentences, in English, internal only — never shown to customers), carefully describe what you ACTUALLY see in the photos, being precise about the details that are easy to get wrong:
-- The exact product type. Look closely: e.g. is a shoe closed at the heel (ballerina/flat) or open at the heel with a strap (slingback)? Is a jacket a genuine cargo jacket, or a padded winter/quilted jacket/parka? Name what it really is.
-- The collar/neckline type precisely: a stand-up collar (Stehkragen, Mao-style) vs a folded-over shirt collar (Hemdkragen/Umlegekragen) vs a V-neck etc. — don't confuse these.
-- The pattern precisely: is it a checked/tartan pattern (Karo), or diamond-shaped quilting/stitching (Raute/Rautensteppung)? These are completely different.
-- Closure, sleeve length, silhouette, heel type, toe shape as relevant.
-Only after writing this analysis, choose the product type and attributes for the title strictly according to what you described — never contradict your own visual analysis.`;
+IMPORTANT — fill in "visualAnalysis" FIRST, before anything else, and base the title and all other fields strictly on it. This is the single most important step for getting the product right.
+
+In "visualAnalysis" (in English, internal only — never shown to customers), do the following, in order:
+
+STEP A — Read the competitor's source text as your primary evidence for WHAT the product is.
+The competitor physically has this product and usually names it correctly. If the source title/description states the product type, material, or a specific feature, TRUST THAT over your own guess from the photos. The photos are for confirming and adding visible detail, not for overriding what the source explicitly says. Only disagree with the source text if the photos clearly contradict it.
+
+STEP B — Then look carefully at ALL the provided photos (not just the first one — key details like an open heel, a collar shape, or a closure often only show on a later/detail photo) and describe what you ACTUALLY see, being precise about the details that are easy to get wrong:
+- The exact product type. Is a shoe closed at the heel (ballerina/flat) or open at the heel with a strap (slingback)? Is a jacket a genuine cargo jacket, or a padded/quilted winter jacket/parka? Name what it really is.
+- The neckline/collar precisely. CRITICAL: a V-shape created merely by an OPEN button placket is NOT a real V-neck — it is a Henley/button neckline (Henley-Ausschnitt / Knopfausschnitt). Do not invent a folded collar (Umlegekragen) where there is only a button opening. A stand-up collar (Stehkragen, Mao-style) is different from a folded-over shirt collar (Umlegekragen).
+- The pattern precisely. A checked/tartan weave (Karo) is completely different from diamond-shaped quilting/stitching (Raute / Rautensteppung). Do not call quilting "Karo".
+
+STEP C — CERTAINTY RULE (most important — this is where most errors happen):
+Only name a feature if you are genuinely sure of it. Prefer the neutral, certain term over a specific guess. Specifically:
+- NEVER infer a material (satin, silk, wool) purely from sheen or texture in a photo — only state a material if the source text confirms it. "Glossy-looking" is not "Satin".
+- Do NOT claim a colour effect like "Ombré"/gradient unless there is a genuine colour gradient — folds, lighting and sheer fabric are not an ombré.
+- Do NOT claim a specific construction detail (a "Volant"/flounce hem, "Grobstrick"/chunky knit) unless it's clearly that — if unsure, use the neutral term ("Saum", "Strick") or leave it out.
+- A title with 4 features you are SURE of is far better than 6 where 2 are guessed. When in doubt, leave the uncertain feature OUT.
+
+STEP D — WORD CHOICE: prefer the most common, most-searched German term when two are correct (e.g. "Dirndl" over "Dirndlkleid", "Reverskragen" over "Kerbkragen"). Ensure correct German adjective inflection ("Runde Zehenpartie", not "Runder Zehenpartie").
+
+Only after completing A-D, choose the product type and attributes for the title strictly according to what you established — never contradict your own visualAnalysis. Before finalizing the titleSuffix, re-check it once: does every single attribute in it appear in your visualAnalysis as something you were sure of? If any attribute was a guess or isn't supported by your analysis, remove it or replace it with a neutral term.`;
 }
 
 type ClaudeOutput = {
@@ -304,6 +319,89 @@ function enforceTerminology(titleSuffix: string, languageName: string = "English
   return result;
 }
 
+/**
+ * Dedicated product-recognition call. Runs BEFORE the main generation and
+ * does only one job: look hard at the photos + source text and establish,
+ * in plain English, exactly what the product is and what its features
+ * actually are — with full focus, not as a side task of writing the title.
+ *
+ * The result is fed into the main generation as established facts the
+ * title must respect. This exists because, when the model does recognition
+ * and title-writing in one call, it tends to make "hasty" precision
+ * errors (calling a riding-style boot a "Reitstiefel", a button placket an
+ * "offene Front", etc.). A separate, focused pass reduces those.
+ *
+ * Best-effort: if it fails, we return null and the main generation still
+ * runs on its own (just without the extra guidance).
+ */
+async function recognizeProduct(
+  product: ShopifyProductRaw,
+  strippedDescription: string,
+  imageBlocks: ClaudeContentBlock[]
+): Promise<string | null> {
+  if (imageBlocks.length === 0) return null;
+
+  const RECOGNITION_SYSTEM = `You are a meticulous fashion product analyst. Your ONLY task is to identify, as accurately as possible, what a single clothing/footwear product is and what its real features are — you do NOT write any marketing copy or title.
+
+Use the competitor's source text as PRIMARY evidence for the product type and any stated material (they sell the item and usually name it correctly), and use ALL the photos to confirm and add visible detail.
+
+Be strict and literal. Follow these rules:
+- Distinguish STYLE from FUNCTION: a boot that merely looks like a riding boot is NOT a "riding boot" unless it's genuinely for riding — describe it by its actual form (e.g. "knee-high boots in a riding-boot style"). Same for "cargo", "utility", etc. — only if genuinely that.
+- Name each feature by the correct part: a corset-like BODICE is the top/bodice, not the waist. A metal horsebit ornament is a decorative detail, not a buckle/closure. A button placket is a button closure, not an "open front".
+- CERTAINTY: only state a feature you are sure of. Never infer material from sheen. Don't claim a gradient/ombré, a flounce, or a chunky knit unless clearly so. Prefer the neutral term when unsure.
+- A neckline V-shape caused only by an open button placket is a button/Henley neckline, NOT a V-neck. Don't invent a collar where there's only a button opening.
+
+Respond with ONLY valid JSON, no markdown:
+{
+  "productType": string,        // what it actually is, plain English, e.g. "knee-high boots (riding-boot style)"
+  "confirmedFeatures": string[],// features you are genuinely sure of, each named by the correct part
+  "uncertainOrAbsent": string[] // things that might look present but you are NOT sure of, or explicitly are not there (so the copywriter avoids claiming them)
+}`;
+
+  try {
+    const responseText = await callClaude({
+      system: RECOGNITION_SYSTEM,
+      messages: [
+        {
+          role: "user",
+          content: [
+            ...imageBlocks,
+            {
+              type: "text",
+              text: [
+                `Competitor's original title: ${product.title}`,
+                `Competitor's description (source): ${strippedDescription}`,
+                `Source category hint: ${product.product_type}`,
+                ``,
+                `Identify the product and its real features according to your rules. Respond with the JSON only.`,
+              ].join("\n"),
+            },
+          ],
+        },
+      ],
+      maxTokens: 1000,
+    });
+
+    const parsed = parseJsonResponse<{
+      productType?: string;
+      confirmedFeatures?: string[];
+      uncertainOrAbsent?: string[];
+    }>(responseText);
+
+    const lines: string[] = [];
+    if (parsed.productType) lines.push(`Product type: ${parsed.productType}`);
+    if (parsed.confirmedFeatures?.length) lines.push(`Confirmed features: ${parsed.confirmedFeatures.join("; ")}`);
+    if (parsed.uncertainOrAbsent?.length) lines.push(`Do NOT claim (uncertain or absent): ${parsed.uncertainOrAbsent.join("; ")}`);
+
+    if (lines.length === 0) return null;
+    console.log(`[content-optimizer] Product recognition:\n${lines.join("\n")}`);
+    return lines.join("\n");
+  } catch (err) {
+    console.warn(`[content-optimizer] Recognition call failed, continuing without it:`, err);
+    return null;
+  }
+}
+
 export async function generateOptimizedContent(
   product: ShopifyProductRaw,
   storeName: string,
@@ -315,11 +413,11 @@ export async function generateOptimizedContent(
     .trim();
 
   const sortedImages = [...product.images].sort((a, b) => a.position - b.position);
-  // Analyze up to 6 images (was 3): key identifying details — an open
+  // Analyze up to 8 images (was 3): key identifying details — an open
   // heel, a specific collar type, quilting pattern — are often only
-  // clearly visible on later photos, so more images means the AI is far
-  // less likely to misread the product type or a feature.
-  const imageUrls = sortedImages.slice(0, 6).map((img) => img.src);
+  // clearly visible on later/detail photos, so more images means the AI is
+  // far less likely to misread the product type or a feature.
+  const imageUrls = sortedImages.slice(0, 8).map((img) => img.src);
   const imageBlocksRaw = await Promise.all(imageUrls.map(fetchImageAsBase64Block));
   const imageBlocks = imageBlocksRaw.filter((b): b is ClaudeContentBlock => b !== null);
 
@@ -327,19 +425,29 @@ export async function generateOptimizedContent(
   const sizeRange = getSizeRange(product);
   const languageName = SUPPORTED_LANGUAGES[language];
 
+  // Dedicated recognition pass first (best-effort): establishes what the
+  // product actually is and which features are confirmed vs. must-not-be-
+  // claimed, so the title generation works from verified facts instead of
+  // guessing while also writing copy.
+  const recognition = await recognizeProduct(product, strippedDescription, imageBlocks);
+  const recognitionBlock = recognition
+    ? `\n\nVERIFIED PRODUCT ANALYSIS (from a dedicated recognition pass — treat this as established fact; the title and description MUST match it, and must NOT claim anything listed under "Do NOT claim"):\n${recognition}`
+    : "";
+
   const userContent: ClaudeContentBlock[] = [
     ...imageBlocks,
     {
       type: "text",
       text: [
-        `Original competitor product title: ${product.title}`,
-        `Original competitor description (source, for reference only — do not copy wording): ${strippedDescription}`,
-        `Product type (source category): ${product.product_type}`,
+        `Competitor's original product title (PRIMARY evidence for what this product is — the competitor sells it and usually names it correctly; trust this for the product type and any material/feature it states, unless the photos clearly contradict it): ${product.title}`,
+        `Competitor's original description (source — for factual details like product type, material, and features; do NOT copy its wording): ${strippedDescription}`,
+        `Product type (source category — a hint, may be messy): ${product.product_type}`,
         `Options: ${optionsText}`,
         `Size range: ${sizeRange ?? "not applicable"}`,
         `Store name: ${storeName}`,
+        recognitionBlock,
         ``,
-        `Analyze the product photos and text, and generate the optimized content according to the schema above, entirely in ${languageName}.`,
+        `Work through visualAnalysis steps A-D first (source text as primary evidence, then all photos, then the certainty rule, then word choice), then generate the optimized content according to the schema above, entirely in ${languageName}.`,
       ].join("\n"),
     },
   ];
