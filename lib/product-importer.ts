@@ -175,6 +175,37 @@ type FileInput = {
  * AI, in the chosen language. Returns the ready-to-use "files" array, in
  * the same order as the original competitor images.
  */
+async function processProductImageWithRetry(
+  imageUrl: string,
+  slug: string,
+  index: number,
+  storeDomain: string,
+  accessToken: string,
+  maxAttempts = 3
+): ReturnType<typeof processProductImage> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await processProductImage(imageUrl, slug, index, storeDomain, accessToken);
+    } catch (err) {
+      lastError = err;
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `[product-importer] Image upload attempt ${attempt}/${maxAttempts} failed for image ${index} (${imageUrl}): ${message}`
+      );
+      // Retry on transient Shopify/storage errors: 503 Service Unavailable,
+      // 500/502/504, and the known intermittent 403 "not available in your
+      // location" from Google Cloud Storage. A short, increasing delay
+      // gives the transient issue time to clear.
+      if (attempt < maxAttempts) {
+        const delayMs = 1500 * attempt; // 1.5s, then 3s
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  throw lastError;
+}
+
 async function buildFilesInput(
   product: ShopifyProductRaw,
   slug: string,
@@ -191,7 +222,7 @@ async function buildFilesInput(
   );
 
   const processed = await Promise.all(
-    sortedImages.map((img, index) => processProductImage(img.src, slug, index + 1, storeDomain, accessToken))
+    sortedImages.map((img, index) => processProductImageWithRetry(img.src, slug, index + 1, storeDomain, accessToken))
   );
 
   return processed.map((p, index) => ({
