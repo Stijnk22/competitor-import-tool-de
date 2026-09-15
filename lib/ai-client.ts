@@ -92,9 +92,41 @@ export async function fetchImageAsBase64Block(url: string): Promise<ClaudeConten
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(15_000) });
     if (!res.ok) return null;
-    const contentType = res.headers.get("content-type") || "image/jpeg";
-    const buffer = await res.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
+    let contentType = res.headers.get("content-type") || "image/jpeg";
+    const buffer = Buffer.from(await res.arrayBuffer());
+
+    // The Anthropic API rejects images over ~5 MB (base64 inflates raw
+    // bytes by ~33%, and the hard limit is 10 MB of base64). Large source
+    // photos — more common now that we send up to 8 per product — would
+    // otherwise make the whole request fail with a 400. So if the raw
+    // image is big, downscale + re-encode it as JPEG with sharp until it's
+    // comfortably under the limit. This also strips metadata as a bonus.
+    // sharp is loaded lazily so this file has no hard dependency on it
+    // unless a large image is actually encountered.
+    const RAW_LIMIT_BYTES = 4_500_000; // keep base64 safely under 10 MB
+    let finalBuffer = buffer;
+    if (buffer.byteLength > RAW_LIMIT_BYTES) {
+      try {
+        const sharpModule = (await import("sharp")).default;
+        // Cap the longest side at 1600px and compress; retry smaller if
+        // still too large. 1600px is plenty for attribute recognition.
+        let width = 1600;
+        let out = await sharpModule(buffer).rotate().resize({ width, withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
+        while (out.byteLength > RAW_LIMIT_BYTES && width > 600) {
+          width = Math.floor(width * 0.75);
+          out = await sharpModule(buffer).rotate().resize({ width, withoutEnlargement: true }).jpeg({ quality: 75 }).toBuffer();
+        }
+        finalBuffer = out;
+        contentType = "image/jpeg";
+      } catch (err) {
+        // If sharp fails for any reason, skip this image rather than
+        // sending an oversized one that would fail the whole request.
+        console.warn(`[ai-client] Could not downscale large image (${buffer.byteLength} bytes), skipping it:`, err);
+        return null;
+      }
+    }
+
+    const base64 = finalBuffer.toString("base64");
     return {
       type: "image",
       source: { type: "base64", media_type: contentType, data: base64 },
