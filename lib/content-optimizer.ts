@@ -210,13 +210,17 @@ STEP B — Then look carefully at ALL the provided photos (not just the first on
 - The neckline/collar precisely. CRITICAL: a V-shape created merely by an OPEN button placket is NOT a real V-neck — it is a Henley/button neckline (Henley-Ausschnitt / Knopfausschnitt). Do not invent a folded collar (Umlegekragen) where there is only a button opening. A stand-up collar (Stehkragen, Mao-style) is different from a folded-over shirt collar (Umlegekragen).
 - The pattern precisely. A checked/tartan weave (Karo) is completely different from diamond-shaped quilting/stitching (Raute / Rautensteppung). Do not call quilting "Karo".
 
-STEP C — CERTAINTY RULE (most important — this is where most errors happen):
-Only name a feature if you are genuinely sure of it. Prefer the neutral, certain term over a specific guess. Specifically:
+STEP C — CERTAINTY RULE (THE MOST IMPORTANT RULE — most errors happen here):
+OVERRIDING PRINCIPLE: If you are not 100% certain about a specific feature, DO NOT put it in the title at all. Leave it out. An omitted feature is never wrong; a guessed feature makes the whole title untrustworthy. Never guess a SPECIFIC sub-type of anything — if you can only be sure of the general thing, either use the neutral general word or omit it entirely. Specifically:
+- SPECIFIC SUB-TYPES — only name the exact sub-type if you are sure; otherwise use the neutral word or leave it out:
+  • Lining: a soft fluffy teddy/fleece lining (Teddyfutter/Fellfutter) is NOT the same as a quilted/padded lining (Steppfutter). If you are not sure which it is, just write "gefüttert" (or leave lining out) — never guess the type.
+  • Knit: chunky knit (Grobstrick) vs fine knit (Feinstrick) vs plain — if unsure, use "Strick".
+  • Pattern: checked/tartan (Karo) vs diamond quilting (Raute/Rautensteppung) — never mix these up; if unsure, omit.
+  • Hem/sleeve/collar sub-types likewise: use the neutral term or omit when unsure.
 - NEVER infer a material (satin, silk, wool) purely from sheen or texture in a photo — only state a material if the source text confirms it. "Glossy-looking" is not "Satin".
 - Do NOT claim a colour effect like "Ombré"/gradient AT ALL unless the source TEXT explicitly uses that word — folds, lighting and sheer fabric are not an ombré.
 - LAYERED OUTFITS: describe only the product being sold. A collar, cuff or hem from a garment worn underneath (e.g. a blouse under a knit jumper) is NOT a feature of this product — never attribute it to the product.
-- Do NOT claim a specific construction detail (a "Volant"/flounce hem, "Grobstrick"/chunky knit) unless it's clearly that — if unsure, use the neutral term ("Saum", "Strick") or leave it out.
-- A title with 4 features you are SURE of is far better than 6 where 2 are guessed. When in doubt, leave the uncertain feature OUT.
+- A title with 4 features you are SURE of is FAR better than 6 where 2 are guessed. When in any doubt, leave the uncertain feature OUT.
 
 STEP D — WORD CHOICE: prefer the most common, most-searched German term when two are correct (e.g. "Dirndl" over "Dirndlkleid", "Reverskragen" over "Kerbkragen"). Ensure correct German adjective inflection ("Runde Zehenpartie", not "Runder Zehenpartie").
 
@@ -373,7 +377,7 @@ Be strict and literal. Follow these rules:
 - Distinguish STYLE from FUNCTION: a boot that merely looks like a riding boot is NOT a "riding boot" unless it's genuinely for riding — describe it by its actual form (e.g. "knee-high boots in a riding-boot style"). Same for "cargo", "utility", etc. — only if genuinely that.
 - LAYERED OUTFITS: the model is often styled with other garments (a blouse under a jumper, a shirt under a jacket, a top under a cardigan). Describe ONLY the product being sold. A collar, cuff, or hem belonging to a garment worn UNDERNEATH is NOT a feature of this product — do not attribute it. If you see a stand-up/shirt collar peeking out but the main product is a knit jumper, that collar belongs to a blouse underneath, not the jumper.
 - Name each feature by the correct part: a corset-like BODICE is the top/bodice, not the waist. A metal horsebit ornament is a decorative detail, not a buckle/closure. A button placket is a button closure, not an "open front".
-- CERTAINTY: only state a feature you are sure of. Never infer material from sheen. Do NOT claim a gradient/ombré effect at all unless the source TEXT explicitly says ombré/gradient — tonal variation from folds, sheer fabric or lighting is not ombré. Don't claim a flounce or a chunky knit unless clearly so. Prefer the neutral term when unsure.
+- CERTAINTY (most important): If you are not 100% sure of a specific feature, do NOT state it — mark it under "uncertainOrAbsent" instead. Never guess a SPECIFIC sub-type. In particular: a soft teddy/fleece lining (Teddyfutter) is not a quilted lining (Steppfutter) — if unsure which, only say "lined/gefüttert". Chunky knit (Grobstrick) vs fine knit — if unsure say just "knit". Checked (Karo) vs diamond quilting (Raute) — never confuse. Never infer material from sheen. Don't claim a gradient/ombré, a flounce, or a chunky knit unless clearly so. When unsure, prefer the neutral term or leave it out entirely — an omitted feature is never wrong, a guessed one is.
 - A neckline V-shape caused only by an open button placket is a button/Henley neckline, NOT a V-neck. Don't invent a collar where there's only a button opening.
 
 Respond with ONLY valid JSON, no markdown:
