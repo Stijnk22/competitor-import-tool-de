@@ -93,6 +93,7 @@ REGELN:
   • Regel 4 — Korrekte deutsche Adjektiv-Endungen: vegane Lederjacke, veganer Ledermantel, veganes Lederkleid, aus veganem Leder.
   • Regel 5 — Behalte wichtige Produkttyp-Wörter genau so, wie deutsche Käufer sie nutzen (Lederjacke, Cowboystiefel, Stiefeletten, Bikerjacke, Ledermantel, Lederrock).
   • Regel 6 — Schreibe NICHT "aus veganem Leder", wenn das Produktwort selbst schon ein Leder-Kompositum ist. Bevorzugt: "vegane Lederjacke". Vermeide: "Lederjacke aus veganem Leder".
+  • Regel 7 — Für JEDE Jacke aus Leder-Optik (auch Biker-, Motorrad-, Aviator-, Racer-Stil) verwende IMMER "vegane Lederjacke" als Produkttyp. Nicht "Bikerjacke", "Motorradjacke" o. ä. — der Kern-Produkttyp einer Lederjacke ist immer "vegane Lederjacke". (Ein Stil-Merkmal wie "im Biker-Stil" darf zusätzlich als Merkmal genannt werden, aber der Produkttyp bleibt "vegane Lederjacke".)
 - Wiederhole kein wichtiges Wort doppelt im titleSuffix.
 - Kopiere niemals den exakten Titel des Konkurrenten — bilde eine eigene Version aus den echten Merkmalen.
 - NATÜRLICHE DEUTSCHE TERMINOLOGIE (Zielgruppe 35+): Verwende natürliche deutsche Einkaufssprache. Entferne NICHT automatisch alle englischen Modebegriffe — behalte englische Begriffe, die im deutschen Modehandel bereits Standard und weit verbreitet sind, z. B.: Oversize, Slim Fit, Regular Fit, Relaxed Fit, Blazer, Trenchcoat, Sneaker, Loafer, Chelsea Boots, Hoodie, Sweatshirt, T-Shirt, Parka, Bomberjacke, Maxi, Midi, Mini, Fair Isle, Boho, Vintage, Western, Colorblock.
@@ -115,7 +116,7 @@ REGELN:
   Beispiele:
   • "Kniehohe Schnürstiefel" → "Kniehohe Stiefel" (Schnürstiefel ist selten gesucht; "Stiefel" ist viel gängiger — "Kniehohe" bleibt)
   • "Steppmantel" → "Wintermantel" (falls zutreffend; gängiger gesucht)
-  • "Bikerjacke" bleibt "Bikerjacke" (bei Leder-Optik: "vegane Bikerjacke aus Leder"-Logik gemäß LEDER-REGEL)
+  • "Bikerjacke" (aus Leder-Optik) → "vegane Lederjacke" (gemäß LEDER-REGEL 7)
   Aber: wenn das spezifische Wort SELBST schon ein starker, häufig gesuchter Begriff ist (z. B. "Rollkragenpullover", "Maxikleid", "Trenchcoat", "Steppjacke"), behalte es — mache es NICHT breiter.
   Niemals zu einem bedeutungslosen Oberbegriff verallgemeinern ("Schuhe", "Kleid", "Oberteil", "Damenmode"), und niemals ein unterscheidendes Merkmal (Kniehohe, Maxi, Oversize, Gefüttert) weglassen — du tauschst nur das Produkttyp-WORT selbst, nie die beschreibenden Merkmale.
 - "coreProductTypeEnglish": das einzelne Kern-Produktnomen, IMMER AUF ENGLISCH (nur intern, z. B. "Jacket", "Boots", "Dress", "Coat") — bestimme es selbst aus dem, was das Produkt wirklich ist.`;
@@ -288,9 +289,18 @@ function enforceTerminology(titleSuffix: string, languageName: string = "English
     result = result.replace(/\b(Faux[-\s]|PU\s|Synthetic\s)?Leather(ette)?\b/gi, "Vegan Leather");
     result = result.replace(/\bVegan\s+Vegan\s+Leather\b/gi, "Vegan Leather");
   } else {
-    // German leather rule (see the 6 rules in the prompt). Safety net that
+    // German leather rule (see the 7 rules in the prompt). Safety net that
     // enforces them regardless of what the model produced.
     //
+    // Rule 7 first: any leather-style jacket variant (Biker/Motorrad/etc.
+    // followed by an explicit leather material) -> "vegane Lederjacke".
+    // We only convert when a leather material is explicitly present, so a
+    // non-leather bomber/biker jacket is left alone.
+    result = result.replace(
+      /\b(?:Biker|Motorrad|Aviator|Racer|Fliegerin?)?jacke\s+aus\s+(?:Kunst|Echt|PU[-\s]?|Synthetik|Öko|veganem\s+)?Leder\b/gi,
+      "vegane Lederjacke"
+    );
+
     // Gender of each "Leder…" compound noun, for the correct "vegan"
     // ending: die Jacke -> vegane, der Mantel -> veganer, das Kleid ->
     // veganes, etc.
