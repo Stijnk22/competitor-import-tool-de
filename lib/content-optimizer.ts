@@ -104,6 +104,13 @@ REGELN:
   • Layering → weglassen oder natürlich auf Deutsch umschreiben
   • Shacket → Hemdjacke (wenn dieser Produkttyp korrekt ist)
   WICHTIG: nicht blind übersetzen. Wenn ein englischer Begriff im deutschen Handel gängig ist und für Käufer ab 35 natürlich klingt, behalte ihn. Bei langen Strickjacken bevorzuge "lange Strickjacke" statt "Longline Cardigan" oder "Long Strickjacke".
+- GÄNGIGSTES PRODUKTTYP-WORT WÄHLEN (wichtig für die Auffindbarkeit): Wähle für den Produkttyp das gängigste, am häufigsten gesuchte deutsche Wort. Wenn das genaueste Wort ein spezifischer, aber selten gesuchter Begriff ist und es ein breiteres, viel häufiger gesuchtes Wort gibt, das trotzdem korrekt ist, verwende das breitere Wort — ABER behalte immer die unterscheidenden Merkmale davor.
+  Beispiele:
+  • "Kniehohe Schnürstiefel" → "Kniehohe Stiefel" (Schnürstiefel ist selten gesucht; "Stiefel" ist viel gängiger — "Kniehohe" bleibt)
+  • "Steppmantel" → "Wintermantel" (falls zutreffend; gängiger gesucht)
+  • "Bikerjacke" → "Lederjacke" (falls es Leder/Kunstleder ist)
+  Aber: wenn das spezifische Wort SELBST schon ein starker, häufig gesuchter Begriff ist (z. B. "Rollkragenpullover", "Maxikleid", "Trenchcoat", "Steppjacke"), behalte es — mache es NICHT breiter.
+  Niemals zu einem bedeutungslosen Oberbegriff verallgemeinern ("Schuhe", "Kleid", "Oberteil", "Damenmode"), und niemals ein unterscheidendes Merkmal (Kniehohe, Maxi, Oversize, Gefüttert) weglassen — du tauschst nur das Produkttyp-WORT selbst, nie die beschreibenden Merkmale.
 - "coreProductTypeEnglish": das einzelne Kern-Produktnomen, IMMER AUF ENGLISCH (nur intern, z. B. "Jacket", "Boots", "Dress", "Coat") — bestimme es selbst aus dem, was das Produkt wirklich ist.`;
 }
 
