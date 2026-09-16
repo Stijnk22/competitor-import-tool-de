@@ -88,6 +88,22 @@ REGELN:
 - Materialangaben als Stoffbezeichnung sind im Titel erlaubt, wenn sie beschreibend/gesucht sind (z. B. "Kunstleder", "Fleece-Futter", "Strick") — anders als in den englischen Regeln. Nenne Material aber nur, wenn es echt zutrifft.
 - Wiederhole kein wichtiges Wort doppelt im titleSuffix.
 - Kopiere niemals den exakten Titel des Konkurrenten — bilde eine eigene Version aus den echten Merkmalen.
+- NATÜRLICHE DEUTSCHE TERMINOLOGIE (Zielgruppe 35+): Verwende natürliche deutsche Einkaufssprache. Entferne NICHT automatisch alle englischen Modebegriffe — behalte englische Begriffe, die im deutschen Modehandel bereits Standard und weit verbreitet sind, z. B.: Oversize, Slim Fit, Regular Fit, Relaxed Fit, Blazer, Trenchcoat, Sneaker, Loafer, Chelsea Boots, Hoodie, Sweatshirt, T-Shirt, Parka, Bomberjacke, Maxi, Midi, Mini, Fair Isle, Boho, Vintage, Western, Colorblock.
+  Bevorzuge aber das deutsche Wort, wenn die englische Formulierung für deutsche Käufer ab 35 weniger natürlich ist — besonders bei Kern-Produkttypen und Kleidungsmerkmalen:
+  • Cardigan → Strickjacke
+  • Longline Cardigan / Long Strickjacke → lange Strickjacke
+  • Sweater → Pullover
+  • Coat → Mantel
+  • Jacket → Jacke
+  • Puffer Jacket → Steppjacke / Winterjacke
+  • Turtleneck → Rollkragen
+  • Crew Neck → Rundhalsausschnitt
+  • Square Neck → Eckiger Ausschnitt
+  • Sweetheart Neckline → Herzausschnitt
+  • Yoke → Rundpasse
+  • Layering → weglassen oder natürlich auf Deutsch umschreiben
+  • Shacket → Hemdjacke (wenn dieser Produkttyp korrekt ist)
+  WICHTIG: nicht blind übersetzen. Wenn ein englischer Begriff im deutschen Handel gängig ist und für Käufer ab 35 natürlich klingt, behalte ihn. Bei langen Strickjacken bevorzuge "lange Strickjacke" statt "Longline Cardigan" oder "Long Strickjacke".
 - "coreProductTypeEnglish": das einzelne Kern-Produktnomen, IMMER AUF ENGLISCH (nur intern, z. B. "Jacket", "Boots", "Dress", "Coat") — bestimme es selbst aus dem, was das Produkt wirklich ist.`;
 }
 
