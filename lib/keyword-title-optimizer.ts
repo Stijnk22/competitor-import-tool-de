@@ -126,11 +126,11 @@ You will be given:
 Your ONLY task: check if any word or phrase in the CURRENT title could be replaced with — or, for the "occasion" attribute type only, appended with — a more precise, real, higher-value equivalent term from the candidate list.
 
 CORE PRODUCT NOUN — search-volume upgrade:
-The last word(s) of the title are the core product type (e.g. "Schnürstiefel", "Rollkragenpullover", "Bikerjacke"). Sometimes this word is accurate but a WEAK search term, while the candidate list contains a broader word that is still accurate AND much more searched (e.g. "Stiefel" at 74000 vs a niche "Schnürstiefel").
-- If the current core product word is relatively low-volume AND the candidate list has a broader word that (a) is still fully accurate for this product and (b) has clearly higher volume — at least about 3x the current word's volume — replace the core product word with the broader, higher-volume one. (e.g. "Kniehohe Schnürstiefel" -> "Kniehohe Stiefel"; "Bikerjacke" -> "Lederjacke" if it's leather.)
-- BUT if the current core product word is ITSELF already a strong, high-volume search term (e.g. "Rollkragenpullover", "Maxikleid"), keep it — do not broaden it.
-- NEVER remove or weaken the distinctive attributes around it. "Kniehohe", "Maxi", "Oversized", "Gefüttert" etc. must stay. You are only allowed to swap the product-type WORD itself, never drop the descriptive attributes.
-- NEVER broaden to a meaningless catch-all ("Schuhe", "Kleid", "Oberteil", "Damenmode").
+The last word(s) of the title are the core product type (e.g. "Schnürstiefel", "Walkjacke", "Rollkragenpullover"). Sometimes this word is accurate but a WEAK search term, while the candidate list contains a word that is still accurate AND much more searched.
+- KEY SIGNAL: if the current core product word does NOT appear in the candidate keyword list at all (or only appears very low), that means it has little search volume — it is a weak term. In that case, REPLACE it with the keyword from the list that (a) has high search volume and (b) best and accurately describes this product. (e.g. "Walkjacke" is not in the list → replace with an accurate high-volume word from the list such as "Wolljacke", "Jacke", or "Mantel" — whichever fits the product; "Kniehohe Schnürstiefel" → "Kniehohe Stiefel".) Pick the highest-volume candidate that still truthfully describes the product — do not pick a high-volume word that describes a different product.
+- If the current core product word IS already in the list with a strong, high volume (e.g. "Rollkragenpullover", "Maxikleid", "Trenchcoat", "Steppjacke"), keep it — do not change it.
+- NEVER remove or weaken the distinctive attributes around it. "Kniehohe", "Maxi", "Oversized", "Gefüttert", "Taillierter Schnitt" etc. must stay. You only swap the product-type WORD itself, never drop the descriptive attributes.
+- NEVER broaden to a meaningless catch-all ("Schuhe", "Kleid", "Oberteil", "Damenmode"), and never pick a word for a genuinely different product type just because it has volume (e.g. don't call a blazer a "Winterjacke").
 
 How to judge a candidate, depending on its attribute type:
 - For VISUAL attribute types (material excluded — pattern, silhouette, closure_style, neckline, sleeve_length, heel_style, toe_style, fit): only use a candidate if it's 100% accurate to what's visible in the PHOTOS.
