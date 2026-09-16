@@ -125,6 +125,13 @@ You will be given:
 
 Your ONLY task: check if any word or phrase in the CURRENT title could be replaced with — or, for the "occasion" attribute type only, appended with — a more precise, real, higher-value equivalent term from the candidate list.
 
+CORE PRODUCT NOUN — search-volume upgrade:
+The last word(s) of the title are the core product type (e.g. "Schnürstiefel", "Rollkragenpullover", "Bikerjacke"). Sometimes this word is accurate but a WEAK search term, while the candidate list contains a broader word that is still accurate AND much more searched (e.g. "Stiefel" at 74000 vs a niche "Schnürstiefel").
+- If the current core product word is relatively low-volume AND the candidate list has a broader word that (a) is still fully accurate for this product and (b) has clearly higher volume — at least about 3x the current word's volume — replace the core product word with the broader, higher-volume one. (e.g. "Kniehohe Schnürstiefel" -> "Kniehohe Stiefel"; "Bikerjacke" -> "Lederjacke" if it's leather.)
+- BUT if the current core product word is ITSELF already a strong, high-volume search term (e.g. "Rollkragenpullover", "Maxikleid"), keep it — do not broaden it.
+- NEVER remove or weaken the distinctive attributes around it. "Kniehohe", "Maxi", "Oversized", "Gefüttert" etc. must stay. You are only allowed to swap the product-type WORD itself, never drop the descriptive attributes.
+- NEVER broaden to a meaningless catch-all ("Schuhe", "Kleid", "Oberteil", "Damenmode").
+
 How to judge a candidate, depending on its attribute type:
 - For VISUAL attribute types (material excluded — pattern, silhouette, closure_style, neckline, sleeve_length, heel_style, toe_style, fit): only use a candidate if it's 100% accurate to what's visible in the PHOTOS.
 - For "occasion" candidates (e.g. "wedding guest", "cocktail", "party", "work", "summer"): these describe a use-case, not a visual trait, so you can't verify them from photos alone. Base this judgment on the competitor's title/description text — only use an occasion candidate if the source text genuinely supports it (e.g. it's described as suitable for that occasion, or its styling — described or shown — clearly matches the mood/formality of that occasion). If the source text gives no real signal either way, don't add an occasion term.
