@@ -85,7 +85,14 @@ REGELN:
 - WÄRME/FUTTER bei Winterartikeln IMMER nennen, wenn zutreffend: "Gefüttert", "Warm Gefüttert", "Fleece-Futter", "Kunstfell", "Teddyfutter" — das ist ein zentrales, stark gesuchtes Merkmal bei Winterjacken, -mänteln und -stiefeln. Übersieh es nicht.
 - "orthopädisch" ist bei Komfort-/Bequemschuhen ein erlaubter, gesuchter Begriff und darf im Titel stehen, wenn zutreffend.
 - Boho-Prüfung: Prüfe, ob das Produkt echt boho/bohemian ist (fließende Silhouette + ethnischer Print wie Ikat/Paisley, oder Häkel-/Quasten-/Fransendetails). Wenn ja, nimm "Boho" als eines der Merkmale auf.
-- Materialangaben als Stoffbezeichnung sind im Titel erlaubt, wenn sie beschreibend/gesucht sind (z. B. "Kunstleder", "Fleece-Futter", "Strick") — anders als in den englischen Regeln. Nenne Material aber nur, wenn es echt zutrifft.
+- Materialangaben als Stoffbezeichnung sind im Titel erlaubt, wenn sie beschreibend/gesucht sind (z. B. "Fleece-Futter", "Strick") — anders als in den englischen Regeln. Nenne Material aber nur, wenn es echt zutrifft.
+- LEDER-REGEL (immer beachten): Behandle Echtleder, Kunstleder, PU-Leder, Synthetikleder, Lederimitat und veganes Leder IMMER als veganes Leder. Verwende NIEMALS "Kunstleder", "Echtleder", "PU-Leder" oder "Lederimitat".
+  • Regel 1 — Wenn "Leder" Teil des deutschen Haupt-Produktworts ist, behalte dieses zusammengesetzte Wort und setze die korrekt gebeugte Form von "vegan" direkt davor: Lederjacke → vegane Lederjacke; Ledermantel → veganer Ledermantel; Lederrock → veganer Lederrock; Lederkleid → veganes Lederkleid; Lederhose → vegane Lederhose; Lederblazer → veganer Lederblazer.
+  • Regel 2 — Wenn das Haupt-Produktwort KEIN "Leder" enthält, behalte das spezifische Produktwort und füge direkt danach "aus veganem Leder" hinzu: Cowboystiefel → Cowboystiefel aus veganem Leder; Stiefeletten → Stiefeletten aus veganem Leder; Loafer → Loafer aus veganem Leder; Pumps → Pumps aus veganem Leder.
+  • Regel 3 — Ersetze niemals ein spezifisches, kaufstarkes Produktwort durch ein generisches Leder-Wort. NICHT "Cowboystiefel" → "Lederstiefel", sondern "Cowboystiefel aus veganem Leder".
+  • Regel 4 — Korrekte deutsche Adjektiv-Endungen: vegane Lederjacke, veganer Ledermantel, veganes Lederkleid, aus veganem Leder.
+  • Regel 5 — Behalte wichtige Produkttyp-Wörter genau so, wie deutsche Käufer sie nutzen (Lederjacke, Cowboystiefel, Stiefeletten, Bikerjacke, Ledermantel, Lederrock).
+  • Regel 6 — Schreibe NICHT "aus veganem Leder", wenn das Produktwort selbst schon ein Leder-Kompositum ist. Bevorzugt: "vegane Lederjacke". Vermeide: "Lederjacke aus veganem Leder".
 - Wiederhole kein wichtiges Wort doppelt im titleSuffix.
 - Kopiere niemals den exakten Titel des Konkurrenten — bilde eine eigene Version aus den echten Merkmalen.
 - NATÜRLICHE DEUTSCHE TERMINOLOGIE (Zielgruppe 35+): Verwende natürliche deutsche Einkaufssprache. Entferne NICHT automatisch alle englischen Modebegriffe — behalte englische Begriffe, die im deutschen Modehandel bereits Standard und weit verbreitet sind, z. B.: Oversize, Slim Fit, Regular Fit, Relaxed Fit, Blazer, Trenchcoat, Sneaker, Loafer, Chelsea Boots, Hoodie, Sweatshirt, T-Shirt, Parka, Bomberjacke, Maxi, Midi, Mini, Fair Isle, Boho, Vintage, Western, Colorblock.
@@ -108,7 +115,7 @@ REGELN:
   Beispiele:
   • "Kniehohe Schnürstiefel" → "Kniehohe Stiefel" (Schnürstiefel ist selten gesucht; "Stiefel" ist viel gängiger — "Kniehohe" bleibt)
   • "Steppmantel" → "Wintermantel" (falls zutreffend; gängiger gesucht)
-  • "Bikerjacke" → "Lederjacke" (falls es Leder/Kunstleder ist)
+  • "Bikerjacke" bleibt "Bikerjacke" (bei Leder-Optik: "vegane Bikerjacke aus Leder"-Logik gemäß LEDER-REGEL)
   Aber: wenn das spezifische Wort SELBST schon ein starker, häufig gesuchter Begriff ist (z. B. "Rollkragenpullover", "Maxikleid", "Trenchcoat", "Steppjacke"), behalte es — mache es NICHT breiter.
   Niemals zu einem bedeutungslosen Oberbegriff verallgemeinern ("Schuhe", "Kleid", "Oberteil", "Damenmode"), und niemals ein unterscheidendes Merkmal (Kniehohe, Maxi, Oversize, Gefüttert) weglassen — du tauschst nur das Produkttyp-WORT selbst, nie die beschreibenden Merkmale.
 - "coreProductTypeEnglish": das einzelne Kern-Produktnomen, IMMER AUF ENGLISCH (nur intern, z. B. "Jacket", "Boots", "Dress", "Coat") — bestimme es selbst aus dem, was das Produkt wirklich ist.`;
@@ -275,12 +282,51 @@ function enforceTerminology(titleSuffix: string, languageName: string = "English
 
   const isGerman = languageName === "German";
 
-  // Leather -> Vegan Leather. For German this is handled in-prompt as
-  // "Kunstleder" (a searched, allowed term there), so we only apply the
-  // English "Vegan Leather" rewrite for non-German markets.
+  // Leather -> Vegan Leather. English markets use "Vegan Leather"; the
+  // German market uses "veganem Leder".
   if (!isGerman) {
     result = result.replace(/\b(Faux[-\s]|PU\s|Synthetic\s)?Leather(ette)?\b/gi, "Vegan Leather");
     result = result.replace(/\bVegan\s+Vegan\s+Leather\b/gi, "Vegan Leather");
+  } else {
+    // German leather rule (see the 6 rules in the prompt). Safety net that
+    // enforces them regardless of what the model produced.
+    //
+    // Gender of each "Leder…" compound noun, for the correct "vegan"
+    // ending: die Jacke -> vegane, der Mantel -> veganer, das Kleid ->
+    // veganes, etc.
+    const lederCompoundGender: Record<string, "e" | "er" | "es"> = {
+      jacke: "e", jacken: "e", weste: "e", westen: "e", hose: "e", hosen: "e",
+      bluse: "e", tasche: "e", tunika: "e", // die -> vegane
+      mantel: "er", rock: "er", blazer: "er", // der -> veganer
+      kleid: "es", // das -> veganes
+    };
+
+    // Rule 1 + 4 + 6: a "Leder<garment>" compound (incl. Kunst/Echt/PU
+    // prefixes, which we drop) -> "<inflected vegan> Leder<garment>".
+    result = result.replace(
+      /\b(?:Kunst|Echt|PU[-\s]?|Synthetik|Öko)?Leder(jacke|jacken|mantel|rock|blazer|kleid|hose|hosen|weste|westen|bluse|tasche|tunika)\b/gi,
+      (_m, garment: string) => {
+        const ending = lederCompoundGender[garment.toLowerCase()] ?? "e";
+        // Keep the compound as one word with a lowercase garment part
+        // (e.g. "Lederjacke", not "LederJacke").
+        const noun = "Leder" + garment.toLowerCase();
+        return `vegan${ending} ${noun}`;
+      }
+    );
+    // Avoid "vegane vegane Lederjacke" if "vegan" was already present.
+    result = result.replace(/\bvegan(?:e|er|es)\s+vegan(e|er|es)\s+(Leder\w+)\b/gi, "vegan$1 $2");
+
+    // Rule 2/3: a bare leather-material reference (Kunstleder, PU-Leder,
+    // Lederimitat, or a standalone "Leder") -> "veganem Leder" (used as
+    // "... aus veganem Leder"). Only applies to material words, not the
+    // garment compounds handled above (those are already done).
+    result = result
+      .replace(/\b(Kunst|Echt|PU[-\s]?|Synthetik|Öko)\s?Leder(imitat|optik)?\b/gi, "veganem Leder")
+      .replace(/\bLederimitat\b/gi, "veganem Leder")
+      .replace(/\b(?<!vegan(?:es|em|er|e)\s)Leder\b/gi, "veganem Leder");
+    // Collapse accidental doubling.
+    result = result.replace(/\bvegan(?:es|em|er|e)\s+veganem\s+Leder\b/gi, "veganem Leder");
+    result = result.replace(/\bveganem\s+veganem\s+Leder\b/gi, "veganem Leder");
   }
 
   // The following are English-market rules that do NOT apply to German:
