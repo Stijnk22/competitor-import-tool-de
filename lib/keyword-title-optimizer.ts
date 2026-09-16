@@ -218,7 +218,7 @@ export async function tryKeywordOptimizedTitle(
       // text response"), so the title was left un-refined. The highest-
       // volume keywords are what matter for the title anyway; the long
       // tail adds little and was causing the failures.
-      const TOP_N = 30;
+      const TOP_N = 25;
       const topCandidates = usableCandidates
         .sort((a, b) => b.searchVolume - a.searchVolume)
         .slice(0, TOP_N);
@@ -260,7 +260,7 @@ export async function tryKeywordOptimizedTitle(
           ],
         },
       ],
-      maxTokens: 1500,
+      maxTokens: 2000,
     });
 
     const parsed = parseJsonResponse<{ refinedTitleSuffix: string }>(responseText);
@@ -273,15 +273,26 @@ export async function tryKeywordOptimizedTitle(
     return { titleSuffix: parsed.refinedTitleSuffix.trim() };
   }
 
-  try {
-    return await attemptRefinement();
-  } catch (firstErr) {
-    console.warn(`[keyword-title-optimizer] Refinement failed (${firstErr instanceof Error ? firstErr.message : firstErr}) — retrying once.`);
+  // Up to 3 attempts. The refinement call can intermittently return no
+  // text or truncated JSON, more often on the big merged categories
+  // (coats has 300+ keywords). A short pause between tries lets a
+  // transient issue clear. If all fail, keep the original title (the
+  // main generation already applied the important product-type wording,
+  // so this step is an enhancement, not a requirement).
+  const MAX_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
       return await attemptRefinement();
-    } catch (secondErr) {
-      console.error(`[keyword-title-optimizer] Retry also failed, keeping original title:`, secondErr);
-      return null;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (attempt < MAX_ATTEMPTS) {
+        console.warn(`[keyword-title-optimizer] Refinement attempt ${attempt}/${MAX_ATTEMPTS} failed (${msg}) — retrying.`);
+        await new Promise((resolve) => setTimeout(resolve, 800 * attempt));
+      } else {
+        console.error(`[keyword-title-optimizer] All ${MAX_ATTEMPTS} attempts failed, keeping original title:`, msg);
+        return null;
+      }
     }
   }
+  return null;
 }
