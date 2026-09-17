@@ -162,23 +162,24 @@ Write EVERY field entirely in ${languageName}: titleSuffix, descriptionHtml, key
 ${titleSection}
 
 ## DESCRIPTION FORMAT (descriptionHtml)
-Follow this exact structure, output as raw HTML (no markdown), in ${languageName}:
+Follow this exact structure, output as raw HTML (no markdown), in ${languageName}.
+CRITICAL: the SECTION HEADINGS must also be in ${languageName} — do NOT leave them in English. Use the natural ${languageName} translation of each heading. For German specifically, use exactly these headings: "Warum Sie es lieben werden", "Perfekt für", "Pflegehinweise", "Häufig gestellte Fragen".
 
 1. Opening paragraph, no heading: "<p>[Full product description reworded as natural flowing prose — don't just repeat titleSuffix verbatim, rephrase it naturally] is/are your go-to choice for [use case/occasion]. [One sentence on construction/style with 2-3 key attributes], [it's/these are] perfect for [gender] who [want/seek benefit].</p>"
 
-2. Why You'll Love It:
-"<p><strong>Why You'll Love It</strong></p><ul><li><strong>[Feature Name, 2-4 words]:</strong> [one benefit sentence].</li>...</ul>"
+2. "Why You'll Love It" heading, translated into ${languageName} (German: "Warum Sie es lieben werden"):
+"<p><strong>[heading in ${languageName}]</strong></p><ul><li><strong>[Feature Name, 2-4 words]:</strong> [one benefit sentence].</li>...</ul>"
 Exactly 3 <li> items, no more, no fewer.
 
-3. Perfect For:
-"<p><strong>Perfect For</strong></p><p>[one flowing paragraph, exactly 4 styling/usage suggestions, comma-separated, last one preceded by "or"].</p>"
+3. "Perfect For" heading, translated into ${languageName} (German: "Perfekt für"):
+"<p><strong>[heading in ${languageName}]</strong></p><p>[one flowing paragraph, exactly 4 styling/usage suggestions, comma-separated, last one preceded by the ${languageName} word for "or"].</p>"
 
-4. Care Instructions:
-"<p><strong>Care Instructions</strong></p><ul><li>...</li>...</ul>"
+4. "Care Instructions" heading, translated into ${languageName} (German: "Pflegehinweise"):
+"<p><strong>[heading in ${languageName}]</strong></p><ul><li>...</li>...</ul>"
 3-4 short imperative-sentence bullets, appropriate to the actual material of THIS product.
 
-5. FAQ:
-"<h2><strong>Frequently Asked Questions</strong></h2><p><strong>[Question]?</strong><br>[Answer sentence].</p>..."
+5. FAQ, with the heading translated into ${languageName} (German: "Häufig gestellte Fragen"):
+"<h2><strong>[FAQ heading in ${languageName}]</strong></h2><p><strong>[Question]?</strong><br>[Answer sentence].</p>..."
 3-4 question/answer pairs, covering whichever are most relevant: closure/fastening mechanism, available sizes/fit range, a specific silhouette/shape detail, styling/occasion suggestions.
 
 ## RULES
@@ -634,7 +635,7 @@ export async function generateOptimizedContent(
   const slug = slugify(titleSuffix);
 
   const descriptionHtml = parsed.descriptionHtml.replace(
-    /<h2>\s*(<strong>)?\s*(Frequently Asked Questions)\s*(<\/strong>)?\s*<\/h2>/i,
+    /<h2>\s*(<strong>)?\s*(Frequently Asked Questions|Häufig gestellte Fragen)\s*(<\/strong>)?\s*<\/h2>/i,
     "<h2><strong>$2</strong></h2>"
   );
 
@@ -769,7 +770,7 @@ export async function generateRephrasedContent(
   const slug = slugify(parsed.titleSuffix);
 
   const descriptionHtml = parsed.descriptionHtml.replace(
-    /<h2>\s*(<strong>)?\s*(Frequently Asked Questions)\s*(<\/strong>)?\s*<\/h2>/i,
+    /<h2>\s*(<strong>)?\s*(Frequently Asked Questions|Häufig gestellte Fragen)\s*(<\/strong>)?\s*<\/h2>/i,
     "<h2><strong>$2</strong></h2>"
   );
 
