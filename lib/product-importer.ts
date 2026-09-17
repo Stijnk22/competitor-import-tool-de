@@ -33,7 +33,7 @@ import { processProductImage } from "./image-processor";
 import { generateAltTexts } from "./alt-text-generator";
 import { calculatePricing, type DiscountType } from "./price-calculator";
 import { resolveCompetitorPrice } from "./currency";
-import { fetchStoreCollections, matchCollection } from "./collection-matcher";
+import { fetchStoreCollections, matchCollections } from "./collection-matcher";
 import { matchTaxonomyCategory } from "./category-matcher";
 import { determineCategoryMetafields, findRelatedProductsCollectionMetafield } from "./category-metafield-matcher";
 import { translateVariantOptions } from "./variant-translator";
@@ -387,22 +387,29 @@ export async function importProductToShopify(
     const collectionIds: string[] = [];
     try {
       const storeCollections = await fetchStoreCollections(storeDomain, accessToken);
-      const matched = await matchCollection(finalTitle, product.product_type, storeCollections);
-      if (matched) {
-        collectionId = matched.id;
-        collectionIds.push(matched.id);
+      // Match ALL fitting collections (broad, mid-level and specific), so a
+      // winter coat lands in e.g. "Damen Winterjacken" AND "Damen Jacken &
+      // Mäntel" — not just one. The first match is also kept as the
+      // primary collectionId, used for the Related Products metafield.
+      const matched = await matchCollections(finalTitle, product.product_type, storeCollections);
+      if (matched.length > 0) {
+        collectionId = matched[0].id;
+        for (const c of matched) {
+          if (!collectionIds.includes(c.id)) collectionIds.push(c.id);
+        }
       } else {
         collectionNote = "No matching collection found — please check manually.";
       }
 
       // Also link the broader gender collection ("Women"/"Men"), in
-      // addition to the specific one above — simple exact/near match
+      // addition to the specific ones above — simple exact/near match
       // against the same already-fetched list, no extra API calls needed.
       if (overrides?.gender) {
         const genderWord = overrides.gender.toLowerCase(); // "women" or "men"
         const genderCollection = storeCollections.find((c) => {
           const title = c.title.toLowerCase().trim();
-          return title === genderWord || title === `${genderWord}'s` || title === `${genderWord}s`;
+          return title === genderWord || title === `${genderWord}'s` || title === `${genderWord}s` ||
+            title === "damen" && (genderWord === "women") || title === "herren" && (genderWord === "men");
         });
         if (genderCollection && !collectionIds.includes(genderCollection.id)) {
           collectionIds.push(genderCollection.id);
