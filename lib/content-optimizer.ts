@@ -749,13 +749,42 @@ export async function generateRephrasedContent(
     },
   ];
 
-  const responseText = await callClaude({
-    system: buildRephraseSystemPrompt(languageName),
-    messages: [{ role: "user", content: userContent }],
-    maxTokens: 6000,
-  });
+  // Rephrase reproduces the ENTIRE existing description as dense HTML, which
+  // in German (long compound words) is very token-heavy — a raised budget
+  // (8000, higher than the main generation's 7000) prevents the output from
+  // being cut off mid-text and producing unparseable JSON.
+  async function generateRephraseOnce(): Promise<ClaudeOutput> {
+    const responseText = await callClaude({
+      system: buildRephraseSystemPrompt(languageName),
+      messages: [{ role: "user", content: userContent }],
+      maxTokens: 8000,
+    });
+    return parseJsonResponse<ClaudeOutput>(responseText);
+  }
 
-  const parsed = parseJsonResponse<ClaudeOutput>(responseText);
+  // Retry the whole call on ANY failure (JSON parse error from a truncated
+  // response, or "Claude returned no text response"). Up to 3 attempts; a
+  // single clean retry almost always resolves a transient hiccup. If all
+  // attempts fail, the last error is thrown so the item is reported as
+  // failed rather than silently producing a broken product.
+  let parsed: ClaudeOutput | null = null;
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      parsed = await generateRephraseOnce();
+      break;
+    } catch (err) {
+      lastError = err;
+      console.warn(
+        `[content-optimizer] (rephrase) Poging ${attempt} mislukt (waarschijnlijk afgekapte/ontbrekende JSON) — ${attempt < 3 ? "opnieuw proberen." : "geen pogingen meer over."}`
+      );
+    }
+  }
+  if (!parsed) {
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("Rephrase-generatie mislukt na 3 pogingen.");
+  }
 
   parsed.titleSuffix = enforceTerminology(parsed.titleSuffix, languageName);
 
