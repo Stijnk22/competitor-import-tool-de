@@ -662,6 +662,35 @@ export async function generateOptimizedContent(
  * keywords, and only rewords them so the result is not a 1:1 copy.
  */
 function buildRephraseSystemPrompt(languageName: string): string {
+  const isGerman = languageName === "German";
+
+  // German titles follow a different convention than English (product type
+  // need not be last; attributes are separate words joined naturally with
+  // "mit"/"und"). Using the English rules here caused the model to cram
+  // every attribute into one artificial hyphen-compound
+  // ("Kapuzen-Fleece-Mehrtaschen-Saumkordelzug-Winterjacke") — so German
+  // gets its own title rules that explicitly forbid that.
+  const titleSection = isGerman
+    ? `## TITEL (Deutsch)
+- Behalte DIESELBEN Keywords/Merkmale und denselben Kern-Produkttyp wie im Originaltitel. Ändere nur Reihenfolge und Formulierung, damit der Titel nicht 1:1 identisch ist (z. B. Merkmale umstellen oder ein Wort durch ein nahes Synonym ersetzen — die wichtigen Suchbegriffe bleiben erhalten).
+- Format: "firstName" (ein eleganter, passender deutscher Vorname, Title Case) + "titleSuffix" ([Geschlecht] ... im natürlichen Stil deutscher Modetitel, Title Case).
+- NATÜRLICHER DEUTSCHER STIL: Schreibe die Merkmale als GETRENNTE Wörter im natürlichen Stil deutscher Modetitel. "mit" und "und" sind erlaubt und erwünscht. Beispiel-Stil: "Herren Winterjacke mit Kapuze und Fleecefutter, Mehreren Taschen und Kordelzug am Saum".
+- NIEMALS mehrere Merkmale zu EINEM langen Bindestrich-Kompositum zusammenfassen. Das ist der häufigste Fehler und ausdrücklich verboten.
+  • FALSCH: "Kapuzen-Fleece-Mehrtaschen-Saumkordelzug-Winterjacke"
+  • RICHTIG: "Winterjacke mit Kapuze und Fleecefutter, Mehreren Taschen und Kordelzug am Saum"
+  Erzeuge keine künstlichen Wortungetüme; halte jedes Merkmal als eigenes Wort bzw. eigene kurze Wortgruppe.
+- Der Produkttyp muss NICHT das letzte Wort sein — im Deutschen steht er oft vorne oder in der Mitte, gefolgt von den Merkmalen. Das ist erwünscht (nicht ans Ende zwingen).
+- Wiederhole kein wichtiges Wort doppelt im titleSuffix.`
+    : `## TITLE
+- Keep the SAME keywords/attributes and the SAME core product type as the original title, but rebuild the order/structure so it is not identical (e.g. reorder the attributes, or swap a word for a close synonym while keeping the key search terms intact).
+- Same format as a normal product title: "firstName" (an elegant first name for the line, Title Case) + "titleSuffix" ([Gender]'s [Attributes...] [Core Product Type], Title Case).
+- Keep the core product noun as the LAST word(s) of titleSuffix; never put a trailing detail after it.
+- Never repeat the same significant word twice within titleSuffix.`;
+
+  const faqHeadingInstruction = isGerman
+    ? `If the original has an FAQ heading, render it as "<h2><strong>Häufig gestellte Fragen</strong></h2>".`
+    : `If the original has an FAQ heading, render it as "<h2><strong>Frequently Asked Questions</strong></h2>".`;
+
   return `You are an expert Shopify product copywriter. You are given an EXISTING product's title and description (which are already good). Your job is NOT to write brand-new copy from scratch, and NOT to change what the product is — it is to REPHRASE the existing title and description so the result carries the same meaning and keeps the same keywords, but is worded and structured differently enough that it is clearly not a 1:1 copy of the original.
 
 ## LANGUAGE
@@ -672,20 +701,16 @@ Write everything in ${languageName} (spelling conventions specifically — e.g. 
 - You MAY use a few different (synonymous) words and, more importantly, a different sentence structure / word order / ordering of points, so the text reads as a genuinely different write-up of the same product.
 - The goal: someone comparing the two listings sees the same product with the same key terms, but not identical sentences. Never output a sentence word-for-word identical to the original.
 
-## TITLE
-- Keep the SAME keywords/attributes and the SAME core product type as the original title, but rebuild the order/structure so it is not identical (e.g. reorder the attributes, or swap a word for a close synonym while keeping the key search terms intact).
-- Same format as a normal product title: "firstName" (an elegant first name for the line, Title Case) + "titleSuffix" ([Gender]'s [Attributes...] [Core Product Type], Title Case).
-- Keep the core product noun as the LAST word(s) of titleSuffix; never put a trailing detail after it.
-- Never repeat the same significant word twice within titleSuffix.
+${titleSection}
 
 ## TERMINOLOGY (still applies)
 - Never use "Orthopedic" anywhere.
-- Always call any leather-look material "Vegan Leather" (never "Leather", "Faux Leather", "PU Leather", etc.).
+- Always call any leather-look material "Vegan Leather" (never "Leather", "Faux Leather", "PU Leather", etc.). (In German: "veganem Leder"/"vegane Lederjacke".)
 
 ## DESCRIPTION (descriptionHtml)
 - Rephrase the existing description into your own wording, keeping the same information and keywords. Output raw HTML (no markdown).
 - Preserve the same overall sections the original has where present (opening paragraph, any feature bullets, care instructions, FAQ, etc.), but reword them — don't copy sentences verbatim, and feel free to reorder points within a section.
-- If the original has an FAQ heading, render it as "<h2><strong>Frequently Asked Questions</strong></h2>".
+- ${faqHeadingInstruction}
 - Do not invent new materials, features, or claims not present in the original.
 
 ## META DESCRIPTION
@@ -792,6 +817,18 @@ export async function generateRephrasedContent(
   if (duplicateWord) {
     console.warn(
       `[content-optimizer] (rephrase) WAARSCHUWING: het woord "${duplicateWord}" komt meer dan 1x voor in de titel "${parsed.titleSuffix}".`
+    );
+  }
+
+  // Catch the "hyphen-monster" case: rephrase occasionally crams several
+  // attributes into one long hyphenated compound
+  // (e.g. "Kapuzen-Fleece-Mehrtaschen-Saumkordelzug-Winterjacke"). We can't
+  // reliably split a German compound automatically, so we flag it in the log
+  // for a quick manual check on the Draft review instead of silently
+  // publishing an unnatural title.
+  if (/\b\S+(?:-\S+){2,}\b/.test(parsed.titleSuffix)) {
+    console.warn(
+      `[content-optimizer] (rephrase) WAARSCHUWING: mogelijk samengeperst koppelwoord in de titel "${parsed.titleSuffix}" — controleer dit product handmatig.`
     );
   }
 
